@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConfFlow - Dashboard</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <header>
+        <h1>ConfFlow</h1>
+        <nav>
+            <a href="/logout">Logout</a>
+        </nav>
+    </header>
+    <main>
+        <section class="dashboard">
+            <h2>User Dashboard</h2>
+            <p><strong>Welcome, {{ email }}!</strong></p>
+            <p><strong>Submission Status:</strong> {{ submission_count }}/2 papers submitted</p>
+            <form action="/submit" method="POST" enctype="multipart/form-data">
+                <label for="title">Paper Title:</label>
+                <input type="text" id="title" name="title" required>
+                <label for="paper">Upload Paper (PDF/Docx):</label>
+                <input type="file" id="paper" name="paper" accept=".pdf" required>
+                <button type="submit" class="btn">Submit Paper</button>
+            </form>
+            <p><a href="/dashboard" id="share-link">Share Dashboard Link</a></p>
+        </section>
+    </main>
+</body>
+</html>
