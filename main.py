@@ -119,8 +119,15 @@ def submit():
         file.save(file_path)
 
         submission = Submission(user_id=user.id, title=title, filename=filename)
-        db.session.add(submission)
-        db.session.commit()
+        #if # of sumbissions < 2
+        sc = Submission.query.filter_by(user_id=user.id).count()
+        if sc <2:
+            db.session.add(submission)
+            db.session.commit()
+            #flash if there's already 2 submissions
+        elif sc==2:
+            flash_with_timestamp('All Papers Submitted.\n'+str(submission)+' not submitted', 'warning')
+            return redirect(url_for('dashboard'))
 
         flash_with_timestamp('Paper submitted successfully!', 'success')
     else:
