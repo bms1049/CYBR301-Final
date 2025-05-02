@@ -49,15 +49,18 @@ def index():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        user = User(email=email, password=hashed_password)
-        db.session.add(user)
-        db.session.commit()
-        flash_with_timestamp('Registration successful! You can now log in.', 'success')
-        return redirect(url_for('login'))
+    try:
+        if request.method == 'POST':
+            email = request.form['email']
+            password = request.form['password']
+            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+            user = User(email=email, password=hashed_password)
+            db.session.add(user)
+            db.session.commit()
+            flash_with_timestamp('Registration successful! You can now log in.', 'success')
+            return redirect(url_for('login'))
+    except db.exc.IntegrityError as e:
+        return render_template('register.html')
     return render_template('register.html')
 
 
