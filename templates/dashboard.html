@@ -26,7 +26,9 @@
                 <input type="file" id="paper" name="paper" accept=".pdf" required>
                 <button type="submit" class="btn">Submit Paper</button>
             </form>
-            <p><a href="/dashboard" id="share-link">Share Dashboard Link</a></p>
+<!--            <p><a href="/dashboard" id="share-link" target="_blank">Share Dashboard Link</a></p>-->
+            <p><button onclick=document.getElementById('shared').innerHTML=document.URL>Share Dashboard Link</button> </p>
+            <p id="shared"></p>
         </section>
     </main>
 </body>
