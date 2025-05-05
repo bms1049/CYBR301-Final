@@ -1,3 +1,4 @@
+#imports
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -5,6 +6,7 @@ import os
 from werkzeug.utils import secure_filename
 from datetime import datetime
 
+#making app & configuring it
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://abc:abc123@localhost/users_db'
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -12,19 +14,21 @@ UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'pdf', 'docx'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+#if there isnt an upload folder, make one
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
+#using the app to make the database and encryption
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 
-
+#user class, id is unique (primary), email is unique, and password is encrypted
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
 
-
+#submission class, uses user primary key, user inputs title, and file, submission time auto added
 class Submission(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -32,21 +36,23 @@ class Submission(db.Model):
     filename = db.Column(db.String(200), nullable=False)
     submitted_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
-
+#checking to make sure the file uploaded is allowed
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
+#for popups, can just call the class do avoid redundancies
 def flash_with_timestamp(message, category='message'):
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     flash(f"[{timestamp}] {message}", category)
 
 
+#default page when loaded
 @app.route('/')
 def index():
     return render_template('index.html')
 
-
+#page loaded when register text is pressed
+#register page gets a new email and password for a new user to log in on the login page
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     try:
@@ -63,7 +69,8 @@ def register():
         return render_template('register.html')
     return render_template('register.html')
 
-
+#page is loaded when login text is pressed
+#login page where user inputs their valid email and password to get to the dashboard
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -78,7 +85,8 @@ def login():
             flash_with_timestamp('Invalid credentials. Please try again.', 'danger')
     return render_template('login.html')
 
-
+#page is loaded once the user logs into the website
+#dashboard page is the page where the user submits the papers and titles and can share the dashboard link
 @app.route('/dashboard')
 def dashboard():
     if 'user_id' not in session:
@@ -125,7 +133,7 @@ def submit():
             db.session.add(submission)
             db.session.commit()
             #flash if there's already 2 submissions
-        elif sc==2:
+        elif sc>=2:
             flash_with_timestamp('All Papers Submitted.\n'+str(submission)+' not submitted', 'warning')
             return redirect(url_for('dashboard'))
 
@@ -135,7 +143,7 @@ def submit():
 
     return redirect(url_for('dashboard'))
 
-
+#logs the user out of the website
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
