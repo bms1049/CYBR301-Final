@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConfFlow - Dashboard</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script>
+<!--function that adds as many co-authors as you need to for each paper-->
+        let count=1
+        function addCoAuthor(){
+        const coauthors=document.createElement('div');
+        coauthors.innerHTML=`
+        <label for="co-authorName">Co-Author Name:</label>
+                <input type="text" id="co-authorName${count}" name="co-authorName${count}" required>
+                <label for="co-authorEmail">Co-Author Email:</label>
+                <input type="text" id="co-authorEmail${count}" name="co-authorEmail${count}" required>`;
+                document.getElementById('co-authors').appendChild(coauthors);
+                document.getElementById('co-author_count').value = count;
+                count++
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <h1>ConfFlow</h1>
+        <marquee scrollamount="10">Submit to Global AI Summit 2025 - Deadline: March 15.</marquee>
+        <nav>
+            <a href="/logout">Logout</a>
+        </nav>
+    </header>
+    <main>
+        <section class="dashboard">
+            <h2>User Dashboard</h2>
+            <p><strong>Welcome, {{ email }}!</strong></p>
+            <p><strong>Submission Status:</strong> {{ submission_count }}/2 papers submitted</p>
+            <form action="/submit" method="POST" enctype="multipart/form-data">
+                <label for="title">Paper Title:</label>
+                <input type="text" id="title" name="title" required>
+                <label for="abstract">Paper Abstract:</label>
+                <textarea id="abstract" name="abstract" required></textarea>
+                <div id="co-authors">
+                <p><button onclick=addCoAuthor()>Add Co-Author</button></p>
+                    <input type="hidden" id="co-author_count" name="co-author_count" value="0">
+                </div>
+                <label for="paper">Upload Paper (PDF/Docx):</label>
+                <input type="file" id="paper" name="paper" accept=".pdf" required>
+                <button type="submit" class="btn">Submit Paper</button>
+            </form>
+<!--            <p><a href="/dashboard" id="share-link" target="_blank">Share Dashboard Link</a></p>-->
+            <p><button onclick=document.getElementById('shared').innerHTML=document.URL>Share Dashboard Link</button></p>
+            <p id="shared"></p>
+        </section>
+    </main>
+</body>
+</html>

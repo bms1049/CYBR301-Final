@@ -35,6 +35,9 @@ class Submission(db.Model):
     title = db.Column(db.String(200), nullable=False)
     filename = db.Column(db.String(200), nullable=False)
     submitted_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    abstract = db.Column(db.String(), nullable=False)
+    coauthor = db.Column(db.String(200), nullable=True)
+    coauthor_email = db.Column(db.String(200), nullable=True)
 
 #checking to make sure the file uploaded is allowed
 def allowed_file(filename):
@@ -96,7 +99,9 @@ def dashboard():
     submission_count = Submission.query.filter_by(user_id=user.id).count()
     return render_template('dashboard.html', email=user.email, submission_count=submission_count)
 
-
+#submission process
+#goes through any errors before it is going to submission
+#if no errors are detected, then it will go through the submission process adding info to database
 @app.route('/submit', methods=['POST'])
 def submit():
     if 'user_id' not in session:
@@ -108,6 +113,11 @@ def submit():
         flash_with_timestamp('Paper title is required.', 'warning')
         return redirect(url_for('dashboard'))
 
+    abstract = request.form.get('abstract')
+    if not abstract:
+        flash_with_timestamp('Paper abstract is required.', 'warning')
+        return redirect(url_for('dashboard'))
+
     if 'paper' not in request.files:
         flash_with_timestamp('No file uploaded.', 'warning')
         return redirect(url_for('dashboard'))
@@ -117,16 +127,41 @@ def submit():
         flash_with_timestamp('No file selected.', 'warning')
         return redirect(url_for('dashboard'))
 
+    coauthorNames=[]
+    coauthorNamesSTR = ""
+    coauthorEmails=[]
+    coauthorEmailsSTR = ""
+    coauthor_count=int(request.form.get('co-author_count',0))
+    for i in range(coauthor_count + 1):
+        name = request.form.get(f'co-authorName{i}')
+        email = request.form.get(f'co-authorEmail{i}')
+        if name:
+            coauthorNames.append(name)
+        if email:
+            coauthorEmails.append(email)
+    if coauthorNames:
+        coauthorNamesSTR = ', '.join(coauthorNames)
+    if coauthorEmails:
+        coauthorEmailsSTR = ', '.join(coauthorEmails)
+
+
     if file and allowed_file(file.filename):
         user = User.query.get(session['user_id'])
         email_prefix = user.email.split('@')[0]
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         original_filename = secure_filename(file.filename)
-        filename = f"{email_prefix}_{title}_{timestamp}"
+        filename = f"{email_prefix}_{title.strip().replace(' ','_')}_{timestamp}"
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
 
-        submission = Submission(user_id=user.id, title=title, filename=filename)
+        submission = Submission(user_id=user.id,
+                                title=title,
+                                filename=filename,
+                                abstract=abstract,
+                                coauthor=coauthorNamesSTR,
+                                coauthor_email=coauthorEmailsSTR)
+
+
         #if # of sumbissions < 2
         sc = Submission.query.filter_by(user_id=user.id).count()
         if sc <2:
@@ -150,7 +185,7 @@ def logout():
     flash_with_timestamp('You have been logged out.', 'info')
     return redirect(url_for('login'))
 
-
+#running the main
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
