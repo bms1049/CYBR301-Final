@@ -1,4 +1,5 @@
 #imports
+from flask_wtf.csrf import CSRFProtect
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -13,6 +14,8 @@ app.config['SECRET_KEY'] = 'your_secret_key'
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'pdf', 'docx'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+csrf = CSRFProtect(app)
 
 #if there isnt an upload folder, make one
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
