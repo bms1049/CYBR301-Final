@@ -38,7 +38,7 @@ class Submission(db.Model):
     title = db.Column(db.String(200), nullable=False)
     filename = db.Column(db.String(200), nullable=False)
     submitted_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    abstract = db.Column(db.String(), nullable=False)
+    abstract = db.Column(db.String(1000), nullable=False)
     coauthor = db.Column(db.String(200), nullable=True)
     coauthor_email = db.Column(db.String(200), nullable=True)
 
@@ -64,13 +64,16 @@ def register():
     try:
         if request.method == 'POST':
             email = request.form['email']
-            password = request.form['password']
-            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-            user = User(email=email, password=hashed_password)
-            db.session.add(user)
-            db.session.commit()
-            flash_with_timestamp('Registration successful! You can now log in.', 'success')
-            return redirect(url_for('login'))
+            if(request.form['password']==request.form['passwordcheck']):
+                password = request.form['password']
+                hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+                user = User(email=email, password=hashed_password)
+                db.session.add(user)
+                db.session.commit()
+                flash_with_timestamp('Registration successful! You can now log in.', 'success')
+                return redirect(url_for('login'))
+            else:
+                flash_with_timestamp('Registration failed. Please check your passowrd.', 'failure')
     except db.exc.IntegrityError as e:
         return render_template('register.html')
     return render_template('register.html')
@@ -124,6 +127,7 @@ def submit():
     if 'paper' not in request.files:
         flash_with_timestamp('No file uploaded.', 'warning')
         return redirect(url_for('dashboard'))
+
 
     file = request.files['paper']
     if file.filename == '':
